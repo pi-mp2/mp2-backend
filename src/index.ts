@@ -3,8 +3,11 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
-import { connectDB } from "./config/db";
-import authRoutes from "./routes/authRoutes";
+
+import { connectDB } from "@config/db";
+import authRoutes from "@routes/authRoutes";
+import userRoutes from "@routes/userRoutes";
+import movieRoutes from "@routes/movieRoutes";
 
 dotenv.config();
 
@@ -22,8 +25,10 @@ app.use(
   })
 );
 
-// Rutas
+// Rutas Principales
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/movies", movieRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API is running 🚀" });
