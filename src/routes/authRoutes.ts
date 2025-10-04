@@ -1,19 +1,16 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import { register } from "@controllers/authController";
 
 const router = Router();
 
-// Placeholder: Registro
-router.post("/register", (req: Request, res: Response) => {
-  res.json({ message: "Register endpoint 🚧" });
-});
+router.post("/register", register);
 
-// Placeholder: Login
-router.post("/login", (req: Request, res: Response) => {
+// dejamos login y logout como placeholder por ahora
+router.post("/login", (req, res) => {
   res.json({ message: "Login endpoint 🚧" });
 });
 
-// Placeholder: Logout
-router.post("/logout", (req: Request, res: Response) => {
+router.post("/logout", (req, res) => {
   res.json({ message: "Logout endpoint 🚧" });
 });
 
