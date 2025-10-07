@@ -6,13 +6,16 @@ import {
     updateUser, 
     deleteUser 
 } from "@controllers/userController";
+import { verifyToken } from "@middleware/auth";
 
 const router = Router();
 
 router.post("/", createUser);
 router.get("/", getUsers);
 router.get("/:id", getUserById);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+
+// Rutas protegidas por token
+router.put("/profile", verifyToken, updateUser);
+router.delete("/profile", verifyToken, deleteUser);
 
 export default router;
