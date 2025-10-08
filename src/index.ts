@@ -8,6 +8,7 @@ import { connectDB } from "@config/db";
 import authRoutes from "@routes/authRoutes";
 import userRoutes from "@routes/userRoutes";
 import movieRoutes from "@routes/movieRoutes";
+import pexelsRoutes from "@routes/pexelsRoutes";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
+app.use("/api/pexels", pexelsRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API is running 🚀" });
