@@ -1,18 +1,30 @@
 import { Router } from "express";
-import { 
-    createMovie, 
-    getMovies, 
-    getMovieById, 
-    updateMovie, 
-    deleteMovie 
+import {
+  createMovie,
+  getMyMovies,
+  getMovies,
+  updateMovie,
+  deleteMovie,
+  uploadMovieVideo,
+  watchMovie,
 } from "@controllers/movieController";
+import { upload } from "@middleware/upload";
+import { verifyToken } from "@middleware/auth";
 
 const router = Router();
 
-router.post("/", createMovie);
+// Subir video (requiere token)
+router.post("/upload", verifyToken, upload.single("file"), uploadMovieVideo);
+
+// Películas del usuario autenticado
+router.get("/my", verifyToken, getMyMovies);
+
+router.get("/watch/:id", watchMovie);
+
+// Resto de rutas
+router.post("/", verifyToken, createMovie);
 router.get("/", getMovies);
-router.get("/:id", getMovieById);
-router.put("/:id", updateMovie);
-router.delete("/:id", deleteMovie);
+router.put("/:id", verifyToken, updateMovie);
+router.delete("/:id", verifyToken, deleteMovie);
 
 export default router;
