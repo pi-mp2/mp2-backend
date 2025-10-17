@@ -5,10 +5,10 @@ import cors from "cors";
 import helmet from "helmet";
 
 import { connectDB } from "@config/db";
-import authRoutes from "@routes/authRoutes";
-import userRoutes from "@routes/userRoutes";
-import movieRoutes from "@routes/movieRoutes";
-import pexelsRoutes from "@routes/pexelsRoutes";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import movieRoutes from "./routes/movieRoutes";
+import pexelsRoutes from "./routes/pexelsRoutes";
 
 dotenv.config();
 
