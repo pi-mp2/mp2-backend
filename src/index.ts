@@ -20,14 +20,20 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 
-const allowedOrigins: string[] = [
-  process.env.CLIENT_URL || "", // Render o dominio del frontend
+const allowedOrigins= [
+  process.env.CLIENT_URL, // Render o dominio del frontend
   "http://localhost:5173",      // entorno local
 ].filter(Boolean); // elimina strings vacíos
 
 app.use(
   cors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
