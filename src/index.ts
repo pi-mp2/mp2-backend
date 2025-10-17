@@ -19,9 +19,15 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
+
+const allowedOrigins: string[] = [
+  process.env.CLIENT_URL || "", // Render o dominio del frontend
+  "http://localhost:5173",      // entorno local
+].filter(Boolean); // elimina strings vacíos
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
     credentials: true,
   })
 );
