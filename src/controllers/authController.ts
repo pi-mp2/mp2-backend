@@ -3,6 +3,7 @@ import { User } from "@models/user";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import { successResponse, errorResponse } from "@utils/responseHandler";
 
 // POST /api/auth/register
 export async function register(req: Request, res: Response) {
@@ -11,17 +12,17 @@ export async function register(req: Request, res: Response) {
 
     // Validaciones básicas
     if (!firstName || !lastName || !age || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return errorResponse(res, 400, "All fields are required");
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return errorResponse(res, 400, "Password must be at least 6 characters long");
     }
 
     // Revisar si ya existe usuario
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email is already registered" });
+      return errorResponse(res, 400, "Email is already registered");
     }
 
     // Hash de contraseña
@@ -39,18 +40,20 @@ export async function register(req: Request, res: Response) {
 
     await newUser.save();
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
+    return successResponse(
+      res,
+      "✅ User registered successfully",
+{
         id: newUser._id,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
       },
-    });
-  } catch (error) {
+      201
+    );
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, 500, "Server error", error.message);
   }
 }
 
@@ -61,20 +64,16 @@ export const login = async (req: Request, res: Response) => {
 
     // Validar campos
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return errorResponse(res, 400, "Email and password are required");
     }
 
     // Buscar usuario
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return errorResponse(res, 401, "Invalid credentials");
 
     // Verificar contraseña
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isMatch) return errorResponse(res, 401, "Invalid credentials");
 
     // Generar JWT
     const token = jwt.sign(
@@ -90,10 +89,10 @@ export const login = async (req: Request, res: Response) => {
       sameSite: "strict",
     });
 
-    res.json({ message: "Login successful", token });
-  } catch (error) {
+    return successResponse(res, "✅ Login successful", { token });
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, 500, "Server error", error.message);
   }
 };
 
@@ -102,7 +101,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return errorResponse(res, 404, "User not found");
 
     const resetToken = jwt.sign(
       { id: user._id },
@@ -129,10 +128,10 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
              <a href="${resetLink}">${resetLink}</a>`,
     });
 
-    res.json({ message: "Password reset email sent" });
-  } catch (error) {
+    return successResponse(res, "Password reset email sent");
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, 500, "Server error");
   }
 };
 
@@ -144,15 +143,15 @@ export const resetPassword = async (req: Request, res: Response) => {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
 
     const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return errorResponse(res, 500, "User not found");
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
 
-    res.json({ message: "Password successfully reset" });
+    return successResponse(res, "Password successfully reset");
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: "Invalid or expired token" });
+    errorResponse(res, 400, "Invalid or expired token");
   }
 };
