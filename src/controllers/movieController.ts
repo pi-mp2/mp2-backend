@@ -87,7 +87,7 @@ export const deleteMovie = async (req: AuthRequest, res: Response) => {
     const movie = await Movie.findOneAndDelete({ _id: req.params.id, user: userId });
 
     if (!movie) return res.status(404).json({ message: "Movie not found or not authorized" });
-    res.json({ message: "✅ Movie deleted" });
+    res.json({ message: "✅ Movie Deleted" });
   } catch (error: any) {
     res.status(500).json({ message: "❌ Error deleting movie", error: error.message });
   }
