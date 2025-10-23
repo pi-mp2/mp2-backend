@@ -10,12 +10,29 @@ const isStrongPassword = (password: string) =>
 // POST /api/auth/register
 export async function register(req: Request, res: Response) {
   try {
-    const { firstName, lastName, age, email, password } = req.body;
+    const 
+    { firstName, 
+      lastName, 
+      age, 
+      email, 
+      password,
+      securityQuestion,
+      securityAnswer,
+    } = req.body;
 
-    if (!firstName || !lastName || !age || !email || !password) {
+    if (
+      !firstName || 
+      !lastName || 
+      !age || 
+      !email || 
+      !password ||
+      !securityQuestion ||
+      !securityAnswer
+    ) {
       return errorResponse(res, 400, "All fields are required");
     }
 
+    // Validar fortaleza de la contraseña
     if (!isStrongPassword(password)) {
       return errorResponse(
         res,
@@ -24,12 +41,15 @@ export async function register(req: Request, res: Response) {
       );
     }
 
+    // Verificar si el correo ya existe
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return errorResponse(res, 400, "Email is already registered");
     }
 
+    // Hashear contraseña y respuesta secreta
     const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedAnswer = await bcrypt.hash(securityAnswer, 10);
 
     const newUser = new User({
       firstName,
@@ -37,6 +57,8 @@ export async function register(req: Request, res: Response) {
       age,
       email,
       password: hashedPassword,
+      securityQuestion,
+      securityAnswer: hashedAnswer,
     });
 
     await newUser.save();
@@ -49,6 +71,7 @@ export async function register(req: Request, res: Response) {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
+        securityQuestion: newUser.securityQuestion,
       },
       201
     );

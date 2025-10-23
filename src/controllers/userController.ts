@@ -121,7 +121,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
         message: "Weak password: must include upper/lowercase, number, and symbol (min 8 chars)",
       });
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = newPassword;
     await user.save();
 
     await UserActivity.create({
@@ -137,6 +137,9 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * Devuelve el historial del usuario
+ */
 export const getActivityHistory = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -144,5 +147,45 @@ export const getActivityHistory = async (req: AuthRequest, res: Response) => {
     res.json({ total: activities.length, activities });
   } catch (error: any) {
     res.status(500).json({ message: "Error fetching history", error: error.message });
+  }
+};
+
+/**
+ * Devuelve la pregunta secreta del usuario según su correo
+ */
+export const verifySecurityQuestion = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(200).json({ securityQuestion: null });
+    res.json({ securityQuestion: user.securityQuestion });
+  } catch (err) {
+    console.error("Error en verifySecurityQuestion:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+/**
+ * Verifica la respuesta secreta y permite cambiar la contraseña
+ */
+export const resetPasswordWithAnswer = async (req: Request, res: Response) => {
+  const { email, securityAnswer, newPassword } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(404).json({ message: "Usuario no encontrado" });
+
+    const isMatch = await user.compareSecurityAnswer(securityAnswer);
+    if (!isMatch)
+      return res.status(400).json({ message: "Respuesta incorrecta" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: "Contraseña restablecida correctamente ✅" });
+  } catch (err) {
+    console.error("Error en resetPasswordWithAnswer:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };

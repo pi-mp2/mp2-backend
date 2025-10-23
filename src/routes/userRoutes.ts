@@ -6,7 +6,9 @@ import {
     updateUser, 
     deleteUser,
     changePassword,
-    getActivityHistory
+    getActivityHistory,
+    verifySecurityQuestion,
+    resetPasswordWithAnswer,
 } from "@controllers/userController";
 import { verifyToken } from "@middleware/auth";
 
@@ -19,6 +21,9 @@ router.get("/:id", getUserById);
 // Rutas protegidas por token
 router.put("/profile", verifyToken, updateUser);
 router.delete("/profile", verifyToken, deleteUser);
+
+router.post("/forgot-password", verifySecurityQuestion); // devuelve la pregunta secreta
+router.post("/reset-password-secret", resetPasswordWithAnswer); // valida respuesta y cambia contraseña
 
 router.put("/change-password", verifyToken, changePassword);
 router.get("/activity", verifyToken, getActivityHistory);
