@@ -7,11 +7,14 @@ import {
   deleteMovie,
   uploadMovieVideo,
   watchMovie,
+  getMovieById
 } from "@controllers/movieController";
 import { upload } from "@middleware/upload";
 import { verifyToken } from "@middleware/auth";
 
 const router = Router();
+
+router.get("/:id", getMovieById);
 
 // Subir video (requiere token)
 router.post("/upload", verifyToken, upload.single("file"), uploadMovieVideo);
