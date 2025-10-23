@@ -5,10 +5,11 @@ import cors from "cors";
 import helmet from "helmet";
 
 import { connectDB } from "@config/db";
-import authRoutes from "@routes/authRoutes";
-import userRoutes from "@routes/userRoutes";
-import movieRoutes from "@routes/movieRoutes";
-import pexelsRoutes from "@routes/pexelsRoutes";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import movieRoutes from "./routes/movieRoutes";
+import pexelsRoutes from "./routes/pexelsRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
 
 dotenv.config();
 
@@ -19,9 +20,14 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+
+const allowedOrigins: string[] = [
+  process.env.CLIENT_URL || "", // Render o dominio del frontend
+  "http://localhost:5173",      // entorno local
+].filter(Boolean) as string[]; // elimina strings vacíos
+
+app.use(cors({
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -31,6 +37,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/pexels", pexelsRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API is running 🚀" });

@@ -1,4 +1,5 @@
 import mongoose, { Schema, model, Document } from "mongoose";
+import { Favorite } from "./favorite";
 
 export interface IMovie extends Document {
   title: string;
@@ -47,4 +48,20 @@ const movieSchema = new Schema<IMovie>(
   { timestamps: true }
 );
 
-export const Movie = model<IMovie>("Movie", movieSchema);
+//Hook: cuando se elimina una película, también borra sus favoritos
+movieSchema.pre("findOneAndDelete", async function (next) {
+  try {
+    const movieId = this.getQuery()._id;
+    if (movieId) {
+      await Favorite.deleteMany({ movie: movieId });
+      console.log(`Favoritos eliminados para la película ${movieId}`);
+    }
+    next();
+  } catch (err: any) { 
+    console.error("Error al eliminar favoritos asociados:", err);
+    next(err as Error); 
+  }
+});
+
+
+export const Movie = mongoose.model<IMovie>("Movie", movieSchema);
