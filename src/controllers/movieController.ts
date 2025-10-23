@@ -167,3 +167,21 @@ export const watchMovie = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "❌ Error fetching movie", error: error.message });
   }
 };
+
+// GET /api/movies/:id → Devuelve todos los datos de una película
+export const getMovieById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const movie = await Movie.findById(id).populate("user", "username email");
+
+    if (!movie) return res.status(404).json({ message: "❌ Movie not found" });
+
+    res.json({
+      message: "✅ Movie fetched successfully",
+      movie,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: "❌ Error fetching movie", error: error.message });
+  }
+};
+
