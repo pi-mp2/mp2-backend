@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import movieRoutes from "./routes/movieRoutes";
 import pexelsRoutes from "./routes/pexelsRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
 
 dotenv.config();
 
@@ -20,14 +21,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
 
-const allowedOrigins= [
-  process.env.CLIENT_URL, // Render o dominio del frontend
+const allowedOrigins: string[] = [
+  process.env.CLIENT_URL || "", // Render o dominio del frontend
   "http://localhost:5173",      // entorno local
-].filter(Boolean); // elimina strings vacíos
+].filter(Boolean) as string[]; // elimina strings vacíos
 
-app.use(
-  cors({
-    origin: "*",
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
   })
 );
 
@@ -36,6 +37,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/pexels", pexelsRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API is running 🚀" });
