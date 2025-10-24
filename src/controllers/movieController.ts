@@ -31,32 +31,50 @@ export const getMyMovies = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Solo devuelve las peliculas publicas
+// Solo devuelve las películas públicas (con paginación y optimización)
 export const getMovies = async (req: AuthRequest, res: Response) => {
   try {
-    const { page = 1, limit = 10, genre, year, search, sortBy = "createdAt", order = "desc" } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      genre,
+      year,
+      search,
+      sortBy = "createdAt",
+      order = "desc",
+    } = req.query;
 
-    const filters: any = { isPublic: true }; // 👈 Solo públicas
+    // Filtros base
+    const filters: any = { isPublic: true };
 
     if (genre) filters.genre = { $in: (genre as string).split(",") };
     if (year) filters.year = Number(year);
     if (search) filters.title = { $regex: search, $options: "i" };
 
+    // Orden dinámico
     const sort: any = { [sortBy as string]: order === "asc" ? 1 : -1 };
 
-    const movies = await Movie.find(filters)
-      .sort(sort)
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit))
-      .populate("user", "email username");
+    // Paginación segura
+    const pageNum = Math.max(Number(page), 1);
+    const limitNum = Math.min(Math.max(Number(limit), 1), 50); // máximo 50 por página
 
-    const total = await Movie.countDocuments(filters);
+    // Consulta optimizada
+    const [movies, total] = await Promise.all([
+      Movie.find(filters)
+        .sort(sort)
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .populate("user", "email username")
+        .lean(), // mejora rendimiento al evitar objetos Mongoose
+      Movie.countDocuments(filters),
+    ]);
 
     res.json({
       total,
-      page: Number(page),
-      totalPages: Math.ceil(total / Number(limit)),
-      movies,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+      limit: limitNum,
+      data: movies,
     });
   } catch (error: any) {
     res.status(500).json({ message: "❌ Error fetching movies", error: error.message });

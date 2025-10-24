@@ -12,6 +12,9 @@ export interface IMovie extends Document {
   createdAt: Date;
   updatedAt: Date;
   publicId: string;
+  altText?: string;          // accesibilidad
+  transcript?: string;       // accesibilidad
+  contrastRatio?: number;    // accesibilidad
 }
 
 const movieSchema = new Schema<IMovie>(
@@ -43,7 +46,11 @@ const movieSchema = new Schema<IMovie>(
     publicId: {
       type: String,
       required: true,
-    }
+    },
+    //Campos accesibilidad
+    altText: { type: String, trim: true },
+    transcript: { type: String, trim: true },
+    contrastRatio: { type: Number, min: 1, max: 21 },
   },
   { timestamps: true }
 );
@@ -63,5 +70,9 @@ movieSchema.pre("findOneAndDelete", async function (next) {
   }
 });
 
+// Índices para búsquedas y paginación eficiente
+movieSchema.index({ title: "text", genre: 1, year: 1 });
+movieSchema.index({ createdAt: -1 });
+movieSchema.index({ isPublic: 1 });
 
 export const Movie = mongoose.model<IMovie>("Movie", movieSchema);
