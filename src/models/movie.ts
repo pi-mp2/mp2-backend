@@ -35,7 +35,7 @@ const movieSchema = new Schema<IMovie>(
     },
     videoUrl: {
       type: String,
-      required: true,
+      required: false,
       match: [/^https?:\/\/.+/, "Video URL must be valid"],
     },
     user: { 
@@ -45,7 +45,7 @@ const movieSchema = new Schema<IMovie>(
     isPublic: { type: Boolean, default: false },
     publicId: {
       type: String,
-      required: true,
+      required: false,
     },
     //Campos accesibilidad
     altText: { type: String, trim: true },
