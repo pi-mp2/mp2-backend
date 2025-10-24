@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(helmet());
 
 const allowedOrigins: string[] = [
-  process.env.CLIENT_URL || "", // Render o dominio del frontend
+  process.env.CLIENT_URL || "https://mp2-frontend.vercel.app", // Render o dominio del frontend
   "http://localhost:5173",      // entorno local
 ].filter(Boolean) as string[]; // elimina strings vacíos
 
