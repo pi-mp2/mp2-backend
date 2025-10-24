@@ -29,13 +29,24 @@ export const getUsers = async (_req: Request, res: Response) => {
 };
 
 // Get single user
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "❌ Error fetching user", error });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId).select("-password -securityAnswer");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "✅ User fetched successfully",
+      user,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: "❌ Error fetching user", error: error.message });
   }
 };
 
