@@ -4,10 +4,25 @@ import bcrypt from "bcrypt";
 import { AuthRequest } from "@middleware/auth"; 
 import { UserActivity } from "@models/userActivity";
 
+/**
+ * Checks if a password meets the required security rules.
+ * Must contain uppercase, lowercase, number, special character, and be at least 8 chars long.
+ * 
+ * @param {string} password - The password to validate.
+ * @returns {boolean} Whether the password meets the strength criteria.
+ */
 const isStrongPassword = (password: string) => 
   /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password);
 
-// Create User
+/**
+ * Creates a new user.
+ * 
+ * @async
+ * @function createUser
+ * @param {Request} req - Express request object containing user data.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} JSON with the created user or error message.
+ */
 export const createUser = async (req: Request, res: Response) => {
   try {
     const user = new User(req.body);
@@ -18,7 +33,15 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-// Get all users
+/**
+ * Retrieves all users from the database.
+ * 
+ * @async
+ * @function getUsers
+ * @param {Request} _req - Express request (not used).
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON list of users or error.
+ */
 export const getUsers = async (_req: Request, res: Response) => {
   try {
     const users = await User.find();
@@ -28,7 +51,15 @@ export const getUsers = async (_req: Request, res: Response) => {
   }
 };
 
-// Get single user
+/**
+ * Gets the profile of the currently authenticated user.
+ * 
+ * @async
+ * @function getUserProfile
+ * @param {AuthRequest} req - Request containing authenticated user.
+ * @param {Response} res - Response object.
+ * @returns {Promise<void>} JSON with user data or error.
+ */
 export const getUserProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -50,7 +81,15 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Update user
+/**
+ * Updates the profile of the authenticated user.
+ * 
+ * @async
+ * @function updateUser
+ * @param {AuthRequest} req - Authenticated request with possible updates.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} JSON with updated user or error message.
+ */
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -63,7 +102,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
 
-    // Evita duplicados en email
+    // Prevent duplicate email
     if (updates.email) {
       const existing = await User.findOne({ email: updates.email, _id: { $ne: userId } });
       if (existing) return res.status(400).json({ message: "Email already in use" });
@@ -89,7 +128,15 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Delete user
+/**
+ * Deletes the authenticated user's account and logs the event.
+ * 
+ * @async
+ * @function deleteUser
+ * @param {AuthRequest} req - Request containing user authentication.
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON confirmation or error.
+ */
 export const deleteUser = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -111,6 +158,15 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * Changes the authenticated user's password after verifying the current one.
+ * 
+ * @async
+ * @function changePassword
+ * @param {AuthRequest} req - Authenticated request containing passwords.
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON confirmation or error.
+ */
 export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -149,7 +205,13 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 };
 
 /**
- * Devuelve el historial del usuario
+ * Returns the recent activity history of the authenticated user.
+ * 
+ * @async
+ * @function getActivityHistory
+ * @param {AuthRequest} req - Authenticated request.
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON with user activity logs.
  */
 export const getActivityHistory = async (req: AuthRequest, res: Response) => {
   try {
@@ -162,7 +224,13 @@ export const getActivityHistory = async (req: AuthRequest, res: Response) => {
 };
 
 /**
- * Devuelve la pregunta secreta del usuario según su correo
+ * Returns the security question for a given user email.
+ * 
+ * @async
+ * @function verifySecurityQuestion
+ * @param {Request} req - Request containing user email.
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON with security question or null.
  */
 export const verifySecurityQuestion = async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -178,7 +246,13 @@ export const verifySecurityQuestion = async (req: Request, res: Response) => {
 };
 
 /**
- * Verifica la respuesta secreta y permite cambiar la contraseña
+ * Validates the user’s security answer and resets the password.
+ * 
+ * @async
+ * @function resetPasswordWithAnswer
+ * @param {Request} req - Request containing email, securityAnswer, and newPassword.
+ * @param {Response} res - Express response.
+ * @returns {Promise<void>} JSON confirmation or error.
  */
 export const resetPasswordWithAnswer = async (req: Request, res: Response) => {
   const { email, securityAnswer, newPassword } = req.body;

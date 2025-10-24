@@ -1,22 +1,30 @@
 import { Schema, model, Document } from "mongoose";
 import bcrypt from "bcrypt";
 
-// 1. Definimos la interfaz TypeScript
+/**
+ * Interface representing a User document in MongoDB.
+ * 
+ * Defines all fields, their expected types, and helper methods 
+ * for password and security answer comparison.
+ */
 export interface IUser extends Document {
-  firstName: string;
-  lastName: string;
-  age: number;
-  email: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
-  securityQuestion: string;
-  securityAnswer: string,
-  comparePassword(candidate: string): Promise<boolean>;
-  compareSecurityAnswer(answer: string): Promise<boolean>;
+  firstName: string;                              // User’s first name
+  lastName: string;                               // User’s last name
+  age: number;                                    // User’s age (must be >= 13)
+  email: string;                                  // Unique email address
+  password: string;                               // Hashed password
+  createdAt: Date;                                // Auto-generated creation date
+  updatedAt: Date;                                // Auto-generated update date
+  securityQuestion: string;                       // Security question for password recovery
+  securityAnswer: string;                         // Hashed security answer
+  comparePassword(candidate: string): Promise<boolean>;          // Compare given password with hash
+  compareSecurityAnswer(answer: string): Promise<boolean>;       // Compare given security answer with hash
 }
 
-// 2. Creamos el esquema con validaciones
+/**
+ * Mongoose schema defining structure and validation rules 
+ * for the "User" collection.
+ */
 const userSchema = new Schema<IUser>(
   {
     firstName: {
@@ -62,11 +70,14 @@ const userSchema = new Schema<IUser>(
     },
   },
   {
-    timestamps: true, // agrega createdAt y updatedAt automáticamente
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
   }
 );
 
-// Encriptar contraseña y respuesta secreta
+/**
+ * Pre-save middleware: hashes the user's password and security answer 
+ * before saving if they were modified.
+ */
 userSchema.pre("save", async function (next) {
   try {
     if (this.isModified("password")) {
@@ -81,13 +92,25 @@ userSchema.pre("save", async function (next) {
   }
 });
 
+/**
+ * Compares a plain-text password with the hashed password.
+ * @param candidate - The password entered by the user.
+ * @returns Promise resolving to `true` if passwords match, otherwise `false`.
+ */
 userSchema.methods.comparePassword = function (candidate: string) {
   return bcrypt.compare(candidate, this.password);
 };
 
+/**
+ * Compares a plain-text security answer with the hashed stored answer.
+ * @param candidate - The security answer entered by the user.
+ * @returns Promise resolving to `true` if answers match, otherwise `false`.
+ */
 userSchema.methods.compareSecurityAnswer = function (candidate: string) {
   return bcrypt.compare(candidate, this.securityAnswer);
 };
 
-// 3. Exportamos el modelo
+/**
+ * Mongoose model for the User collection.
+ */
 export const User = model<IUser>("User", userSchema);
