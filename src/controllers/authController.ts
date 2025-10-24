@@ -110,6 +110,7 @@ export const login = async (req: Request, res: Response) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      token,
     });
   } catch (error: any) {
     return errorResponse(res, 500, "Server error", error.message);

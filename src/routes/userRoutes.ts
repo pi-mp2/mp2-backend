@@ -2,7 +2,7 @@ import { Router } from "express";
 import { 
     createUser, 
     getUsers, 
-    getUserById, 
+    getUserProfile, 
     updateUser, 
     deleteUser,
     changePassword,
@@ -16,9 +16,9 @@ const router = Router();
 
 router.post("/", createUser);
 router.get("/", getUsers);
-router.get("/:id", getUserById);
 
 // Rutas protegidas por token
+router.get("/profile", verifyToken, getUserProfile);
 router.put("/profile", verifyToken, updateUser);
 router.delete("/profile", verifyToken, deleteUser);
 
