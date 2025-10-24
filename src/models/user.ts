@@ -1,4 +1,5 @@
 import { Schema, model, Document } from "mongoose";
+import bcrypt from "bcrypt";
 
 // 1. Definimos la interfaz TypeScript
 export interface IUser extends Document {
@@ -9,6 +10,10 @@ export interface IUser extends Document {
   password: string;
   createdAt: Date;
   updatedAt: Date;
+  securityQuestion: string;
+  securityAnswer: string,
+  comparePassword(candidate: string): Promise<boolean>;
+  compareSecurityAnswer(answer: string): Promise<boolean>;
 }
 
 // 2. Creamos el esquema con validaciones
@@ -47,11 +52,42 @@ const userSchema = new Schema<IUser>(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
     },
+    securityQuestion: { 
+      type: String, 
+      required: [true, "Security Question is required"],
+    },
+    securityAnswer: { 
+      type: String, 
+      required: [true, "Security Answer is required"],
+    },
   },
   {
     timestamps: true, // agrega createdAt y updatedAt automáticamente
   }
 );
+
+// Encriptar contraseña y respuesta secreta
+userSchema.pre("save", async function (next) {
+  try {
+    if (this.isModified("password")) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+    if (this.isModified("securityAnswer")) {
+      this.securityAnswer = await bcrypt.hash(this.securityAnswer, 10);
+    }
+    next();
+  } catch (err) {
+    next(err as any);
+  }
+});
+
+userSchema.methods.comparePassword = function (candidate: string) {
+  return bcrypt.compare(candidate, this.password);
+};
+
+userSchema.methods.compareSecurityAnswer = function (candidate: string) {
+  return bcrypt.compare(candidate, this.securityAnswer);
+};
 
 // 3. Exportamos el modelo
 export const User = model<IUser>("User", userSchema);
