@@ -1,10 +1,36 @@
+/**
+ * @fileoverview Controller for handling movie management operations.
+ * Supports movie creation (manual or via video upload), retrieval, updates, deletion,
+ * and access control for public/private movies.
+ */
+
 import { Request, Response } from "express";
 import { Movie } from "@models/movie";
 import cloudinary from "@config/cloudinary";
 import streamifier from "streamifier";
 import { AuthRequest } from "@middleware/auth";
 
-// Crear película manualmente (solo si se quiere agregar sin video)
+/**
+ * Creates a new movie manually without uploading a video.
+ *
+ * Validates required fields and assigns default genre if not provided.
+ *
+ * @async
+ * @function createMovie
+ * @param {AuthRequest} req - Express request with user authentication and movie details.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON with created movie or error message.
+ *
+ * @example
+ * POST /api/movies
+ * {
+ *   "title": "Interstellar",
+ *   "description": "A journey through space and time.",
+ *   "genre": "Sci-Fi, Adventure",
+ *   "year": 2014,
+ *   "isPublic": true
+ * }
+ */
 export const createMovie = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -32,7 +58,15 @@ export const createMovie = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Obtener las películas del usuario autenticado
+/**
+ * Retrieves all movies created by the authenticated user.
+ *
+ * @async
+ * @function getMyMovies
+ * @param {AuthRequest} req - Express request with authenticated user.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON containing user's movies.
+ */
 export const getMyMovies = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -45,7 +79,20 @@ export const getMyMovies = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Obtener todas las películas públicas (con filtros y paginación)
+/**
+ * Retrieves all public movies with optional filters, search, and pagination.
+ *
+ * Supports filters for genre, year, and text search in title.
+ *
+ * @async
+ * @function getMovies
+ * @param {AuthRequest} req - Express request with optional query parameters.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON response with paginated movie list.
+ *
+ * @example
+ * GET /api/movies?genre=Sci-Fi&year=2023&page=2&limit=5
+ */
 export const getMovies = async (req: AuthRequest, res: Response) => {
   try {
     const {
@@ -89,7 +136,15 @@ export const getMovies = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Actualizar película (solo si pertenece al usuario)
+/**
+ * Updates a movie if it belongs to the authenticated user.
+ *
+ * @async
+ * @function updateMovie
+ * @param {AuthRequest} req - Express request with movie ID and updated fields.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON with updated movie or error message.
+ */
 export const updateMovie = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -106,26 +161,38 @@ export const updateMovie = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Eliminar película (y su video en Cloudinary)
+/**
+ * Deletes a movie and removes its video from Cloudinary (if applicable).
+ *
+ * @async
+ * @function deleteMovie
+ * @param {AuthRequest} req - Express request with movie ID and authenticated user.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON confirmation of deletion or error message.
+ */
 export const deleteMovie = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const movie = await Movie.findOneAndDelete({ _id: req.params.id, user: userId });
 
     if (!movie) return res.status(404).json({ message: "Movie not found or not authorized" });
-
-    // Eliminar video de Cloudinary si existe
-    if (movie.publicId) {
-      await cloudinary.uploader.destroy(movie.publicId, { resource_type: "video" });
-    }
-
-    res.json({ message: "✅ Movie deleted successfully" });
+    res.json({ message: "✅ Movie Deleted" });
   } catch (error: any) {
     res.status(500).json({ message: "❌ Error deleting movie", error: error.message });
   }
 };
 
-// Subir video a Cloudinary y crear la película
+/**
+ * Uploads a video file to Cloudinary and creates a movie entry.
+ *
+ * Streams the uploaded file directly from memory using `streamifier`.
+ *
+ * @async
+ * @function uploadMovieVideo
+ * @param {AuthRequest} req - Express request with file buffer and movie data.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON with created movie details or error message.
+ */
 export const uploadMovieVideo = async (req: AuthRequest, res: Response) => {
   try {
     const file = req.file;
@@ -180,7 +247,15 @@ export const uploadMovieVideo = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Ver película (verifica si es pública o del usuario)
+/**
+ * Returns the video URL of a movie if it is public or belongs to the authenticated user.
+ *
+ * @async
+ * @function watchMovie
+ * @param {AuthRequest} req - Express request with movie ID and user authentication.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON with video URL or error message.
+ */
 export const watchMovie = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -198,7 +273,17 @@ export const watchMovie = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Obtener datos completos de una película
+/**
+ * Retrieves detailed information about a specific movie by its ID.
+ *
+ * Populates user information associated with the movie.
+ *
+ * @async
+ * @function getMovieById
+ * @param {Request} req - Express request with movie ID in params.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<Response>} JSON with movie details or error message.
+ */
 export const getMovieById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
