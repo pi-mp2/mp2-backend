@@ -39,7 +39,7 @@ router.get("/verify", verifyToken, (req: AuthRequest, res: Response) => {
   res.status(200).json({
     message: "Usuario autenticado",
     user: req.user, // { id, email }
-  });
+  })});
 /**
  * POST /api/auth/logout
  * Placeholder endpoint for user logout (to be expanded if token invalidation is needed).

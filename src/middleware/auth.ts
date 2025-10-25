@@ -21,7 +21,7 @@ export interface AuthRequest extends Request {
  * @param res - Express response object
  * @param next - Callback to pass control to the next middleware
  */
-export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const verifyToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     // Retrieve the token from cookies (requires cookie-parser middleware)
     const token = req.cookies.token; // expected format: Bearer <token>
