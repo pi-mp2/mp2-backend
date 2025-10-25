@@ -9,9 +9,8 @@ export interface AuthRequest extends Request {
 
 export const verifyToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const token =
-      req.cookies.token || req.headers.authorization?.split(" ")[1];
-
+    const token = req.cookies.token;
+    
     if (!token) {
       return res.status(401).json({ message: "No token, authorization denied" });
     }

@@ -103,6 +103,7 @@ export const login = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
 
     return successResponse(res, "✅ Login successful", {
@@ -130,6 +131,7 @@ export const logout = async (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
+      path: "/",
     });
 
     return successResponse(res, "✅ Logged out successfully");

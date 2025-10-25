@@ -13,7 +13,10 @@ import favoriteRoutes from "./routes/favoriteRoutes";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+
+// ✅ Middlewares básicos
+app.use(express.json());
+app.use(cookieParser());
 
 // ✅ Configuración CORS segura y funcional
 const allowedOrigins = [
@@ -23,14 +26,16 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true, // permite enviar y recibir cookies
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
-
-// ✅ Middlewares básicos
-app.use(express.json());
-app.use(cookieParser());
 
 // ✅ Rutas
 app.use("/api/auth", authRoutes);
@@ -39,14 +44,4 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/pexels", pexelsRoutes);
 app.use("/api/favorites", favoriteRoutes);
 
-// ✅ Ruta de prueba
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "🚀 API running correctly" });
-});
-
-// ✅ Conexión DB + servidor
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-  });
-});
+export default app;
