@@ -22,10 +22,16 @@ router.get("/profile", verifyToken, getUserProfile);
 router.put("/profile", verifyToken, updateUser);
 router.delete("/profile", verifyToken, deleteUser);
 
+// Cambiar contraseña (usuario logueado)
+router.put("/change-password", verifyToken, changePassword);
+
+// Historial de actividad (requiere token)
+router.get("/activity", verifyToken, getActivityHistory);
+
+// Recuperación de contraseña (sin login)
 router.post("/forgot-password", verifySecurityQuestion); // devuelve la pregunta secreta
 router.post("/reset-password-secret", resetPasswordWithAnswer); // valida respuesta y cambia contraseña
 
-router.put("/change-password", verifyToken, changePassword);
-router.get("/activity", verifyToken, getActivityHistory);
+
 
 export default router;
