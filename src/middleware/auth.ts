@@ -19,20 +19,13 @@ export const verifyToken = async (req: AuthRequest, res: Response, next: NextFun
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: string;
       email: string;
-      tokenVersion: number;
     };
 
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(401).json({ message: "Invalid token user" });
+      return res.status(401).json({ message: "User not found" });
     }
 
-    // Verificar si el tokenVersion aún coincide
-    if (decoded.tokenVersion !== user.tokenVersion) {
-      return res.status(401).json({ message: "Token no longer valid" });
-    }
-
-    // Guardar datos del usuario en la request
     req.user = { id: (user._id as Types.ObjectId).toString(), email: user.email };
 
     next();
