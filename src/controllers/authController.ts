@@ -47,8 +47,6 @@ export async function register(req: Request, res: Response) {
       return errorResponse(res, 400, "Email is already registered");
     }
 
-    // Hashear contraseña y respuesta secreta
-    const hashedPassword = await bcrypt.hash(password, 10);
     const hashedAnswer = await bcrypt.hash(securityAnswer, 10);
 
     const newUser = new User({
@@ -56,7 +54,7 @@ export async function register(req: Request, res: Response) {
       lastName,
       age,
       email,
-      password: hashedPassword,
+      password,
       securityQuestion,
       securityAnswer: hashedAnswer,
     });

@@ -130,9 +130,8 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
         message: "Weak password: must include upper/lowercase, number, and symbol (min 8 chars)",
     });
 
-    // Encriptar nueva contraseña
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.tokenVersion += 1; // invalida sesiones activas
+    user.password = newPassword; // el pre('save') hará el hash automáticamente
+    user.tokenVersion += 1;
     await user.save();
 
     // Borrar cookie y cerrar sesión
@@ -177,7 +176,7 @@ export const resetPasswordWithAnswer = async (req: Request, res: Response) => {
         message: "Weak password: must include upper/lowercase, number, and symbol (min 8 chars)",
       });
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = newPassword; // dejar que el pre('save') lo hashee
     user.tokenVersion += 1;
     await user.save();
 
