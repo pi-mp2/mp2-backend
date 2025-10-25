@@ -85,8 +85,8 @@ userSchema.methods.comparePassword = function (candidate: string) {
   return bcrypt.compare(candidate, this.password);
 };
 
-userSchema.methods.compareSecurityAnswer = function (candidate: string) {
-  return bcrypt.compare(candidate, this.securityAnswer);
+userSchema.methods.compareSecurityAnswer = async function (candidate: string) {
+  return await bcrypt.compare(candidate, this.securityAnswer);
 };
 
 // 3. Exportamos el modelo
