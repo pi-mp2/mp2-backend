@@ -13,14 +13,13 @@ import { upload } from "@middleware/upload";
 import { verifyToken } from "@middleware/auth";
 
 const router = Router();
+// Películas del usuario autenticado
+router.get("/my", verifyToken, getMyMovies);
 
 router.get("/:id", getMovieById);
 
 // Subir video (requiere token)
 router.post("/upload", verifyToken, upload.single("file"), uploadMovieVideo);
-
-// Películas del usuario autenticado
-router.get("/my", verifyToken, getMyMovies);
 
 router.get("/watch/:id", watchMovie);
 
