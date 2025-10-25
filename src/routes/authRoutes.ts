@@ -1,5 +1,6 @@
-import { Router } from "express";
-import { register, login } from "@controllers/authController";
+import { Router, Response } from "express";
+import { register, login, logout } from "@controllers/authController";
+import { AuthRequest, verifyToken } from "@middleware/auth";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ const router = Router();
  * @route POST /register
  * @access Public
  */
+// Registro e inicio de sesión
 router.post("/register", register);
 
 /**
@@ -29,6 +31,15 @@ router.post("/register", register);
  */
 router.post("/login", login);
 
+// Cierre de sesión (requiere estar autenticado)
+router.post("/logout", verifyToken, logout);
+
+// Nueva ruta para verificar sesión
+router.get("/verify", verifyToken, (req: AuthRequest, res: Response) => {
+  res.status(200).json({
+    message: "Usuario autenticado",
+    user: req.user, // { id, email }
+  });
 /**
  * POST /api/auth/logout
  * Placeholder endpoint for user logout (to be expanded if token invalidation is needed).

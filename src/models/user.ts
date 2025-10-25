@@ -8,23 +8,21 @@ import bcrypt from "bcrypt";
  * for password and security answer comparison.
  */
 export interface IUser extends Document {
-  firstName: string;                              // User’s first name
-  lastName: string;                               // User’s last name
-  age: number;                                    // User’s age (must be >= 13)
-  email: string;                                  // Unique email address
-  password: string;                               // Hashed password
-  createdAt: Date;                                // Auto-generated creation date
-  updatedAt: Date;                                // Auto-generated update date
-  securityQuestion: string;                       // Security question for password recovery
-  securityAnswer: string;                         // Hashed security answer
-  comparePassword(candidate: string): Promise<boolean>;          // Compare given password with hash
-  compareSecurityAnswer(answer: string): Promise<boolean>;       // Compare given security answer with hash
+  firstName: string;
+  lastName: string;
+  age: number;
+  email: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+  securityQuestion: string;
+  securityAnswer: string,
+  tokenVersion: number,
+  comparePassword(candidate: string): Promise<boolean>;
+  compareSecurityAnswer(answer: string): Promise<boolean>;
 }
 
-/**
- * Mongoose schema defining structure and validation rules 
- * for the "User" collection.
- */
+// 2. Creamos el esquema con validaciones
 const userSchema = new Schema<IUser>(
   {
     firstName: {
@@ -67,6 +65,10 @@ const userSchema = new Schema<IUser>(
     securityAnswer: { 
       type: String, 
       required: [true, "Security Answer is required"],
+    },
+    tokenVersion: { 
+      type: Number, 
+      default: 0
     },
   },
   {

@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { User } from "@models/user";
+import { Types } from "mongoose"
 
 /**
  * Extended Request interface that includes the `user` property.
@@ -24,22 +26,24 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
     // Retrieve the token from cookies (requires cookie-parser middleware)
     const token = req.cookies.token; // expected format: Bearer <token>
     
-    // If no token is found, deny access with 401 Unauthorized
     if (!token) {
       return res.status(401).json({ message: "No token, authorization denied" });
     }
 
-    // Verify and decode the token using the secret key from environment variables
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; email: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      id: string;
+      email: string;
+    };
 
-    // Attach decoded user data to the request object for later use
-    req.user = decoded;
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
 
-    // Continue to the next middleware or route handler
+    req.user = { id: (user._id as Types.ObjectId).toString(), email: user.email };
+
     next();
-
   } catch (error) {
-    // If the token is invalid or expired, return 403 Forbidden
     res.status(403).json({ message: "Invalid or expired token" });
   }
 };

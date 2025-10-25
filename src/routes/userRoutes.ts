@@ -85,5 +85,16 @@ router.put("/change-password", verifyToken, changePassword);
  * @access Private (JWT required)
  */
 router.get("/activity", verifyToken, getActivityHistory);
+// Cambiar contraseña (usuario logueado)
+router.put("/change-password", verifyToken, changePassword);
+
+// Historial de actividad (requiere token)
+router.get("/activity", verifyToken, getActivityHistory);
+
+// Recuperación de contraseña (sin login)
+router.post("/forgot-password", verifySecurityQuestion); // devuelve la pregunta secreta
+router.post("/reset-password-secret", resetPasswordWithAnswer); // valida respuesta y cambia contraseña
+
+
 
 export default router;

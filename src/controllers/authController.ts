@@ -148,7 +148,7 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) return errorResponse(res, 401, "Invalid credentials");
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, tokenVersion: user.tokenVersion },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
@@ -156,8 +156,9 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
     });
 
     return successResponse(res, "✅ Login successful", {
@@ -172,20 +173,24 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Logs out the user by clearing the authentication cookie.
- * 
- * @async
- * @function logout
- * @param {Request} _req - Express request object (unused).
- * @param {Response} res - Express response object.
- * @returns {Promise<Response>} Confirmation message.
- * 
- * @example
- * POST /api/auth/logout
- * // -> { "message": "✅ Logged out successfully" }
- */
-export const logout = async (_req: Request, res: Response) => {
-  res.clearCookie("token");
-  return successResponse(res, "✅ Logged out successfully");
+// POST /api/auth/logout
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.token;
+    if (token) {
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+      await User.findByIdAndUpdate(decoded.id, { $inc: { tokenVersion: 1 } });
+    }
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+
+    return successResponse(res, "✅ Logged out successfully");
+  } catch (error: any) {
+    return errorResponse(res, 500, "Server error", error.message);
+  }
 };
