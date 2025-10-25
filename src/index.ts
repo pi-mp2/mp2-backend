@@ -12,6 +12,8 @@ import favoriteRoutes from "./routes/favoriteRoutes";
 
 dotenv.config();
 
+const PORT = process.env.PORT || 4000;
+
 const app = express();
 
 // ✅ Middlewares básicos
@@ -43,5 +45,14 @@ app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/pexels", pexelsRoutes);
 app.use("/api/favorites", favoriteRoutes);
+
+// Conectar a la base de datos y levantar el servidor
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
+}).catch((err) => {
+  console.error("❌ Error connecting to database:", err);
+});
 
 export default app;
