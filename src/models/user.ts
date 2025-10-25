@@ -12,6 +12,7 @@ export interface IUser extends Document {
   updatedAt: Date;
   securityQuestion: string;
   securityAnswer: string,
+  tokenVersion: number,
   comparePassword(candidate: string): Promise<boolean>;
   compareSecurityAnswer(answer: string): Promise<boolean>;
 }
@@ -59,6 +60,10 @@ const userSchema = new Schema<IUser>(
     securityAnswer: { 
       type: String, 
       required: [true, "Security Answer is required"],
+    },
+    tokenVersion: { 
+      type: Number, 
+      default: 0
     },
   },
   {

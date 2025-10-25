@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { register, login } from "@controllers/authController";
+import { register, login, logout } from "@controllers/authController";
+import { verifyToken } from "@middleware/auth";
 
 const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
 
-router.post("/logout", (req, res) => {
-  res.json({ message: "Logout endpoint 🚧" });
-});
+router.post("/logout", verifyToken, logout);
 
 export default router;

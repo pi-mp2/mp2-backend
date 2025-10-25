@@ -93,7 +93,7 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) return errorResponse(res, 401, "Invalid credentials");
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, tokenVersion: user.tokenVersion },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
@@ -118,7 +118,22 @@ export const login = async (req: Request, res: Response) => {
 };
 
 // POST /api/auth/logout
-export const logout = async (_req: Request, res: Response) => {
-  res.clearCookie("token");
-  return successResponse(res, "✅ Logged out successfully");
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.token;
+    if (token) {
+      const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+      await User.findByIdAndUpdate(decoded.id, { $inc: { tokenVersion: 1 } });
+    }
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return successResponse(res, "✅ Logged out successfully");
+  } catch (error: any) {
+    return errorResponse(res, 500, "Server error", error.message);
+  }
 };
